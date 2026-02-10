@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+:root {
+  background: #09090b; /* Zinc 950 */
+  color: #fafafa;
+}
+
+body {
+  @apply bg-zinc-950 text-zinc-100;
+}
+
+@keyframes scan-line {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(1000%); }
+}
+
+.animate-scan-line {
+  animation: scan-line 4s linear infinite;
+}

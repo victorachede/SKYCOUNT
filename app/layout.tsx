@@ -26,4 +26,4 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </body>
     </html>
   );
-} // <--- This was the missing bracket that caused the <eof> error!
+}

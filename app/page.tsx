@@ -14,7 +14,7 @@ export default function Dashboard() {
   });
 
   useEffect(() => {
-    // 1. Initial Data Fetch (on page load)
+    // 1. Initial Data Fetch
     const fetchInitialData = async () => {
       const { data, error } = await supabase
         .from('occupancy_logs')
@@ -22,12 +22,7 @@ export default function Dashboard() {
         .order('created_at', { ascending: false })
         .limit(1);
 
-      if (error) {
-        console.error("Supabase Error:", error.message);
-        return;
-      }
-
-      if (data && data.length > 0) {
+      if (!error && data && data.length > 0) {
         setStats(prev => ({
           ...prev,
           total: data[0].count,
@@ -39,14 +34,13 @@ export default function Dashboard() {
 
     fetchInitialData();
 
-    // 2. Real-time Subscription (listen for Python script inserts)
+    // 2. Real-time Subscription
     const channel = supabase
       .channel('realtime_dashboard')
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'occupancy_logs' },
         (payload) => {
-          console.log('Real-time update received:', payload.new);
           setStats(prev => ({
             ...prev,
             total: payload.new.count,
@@ -63,9 +57,9 @@ export default function Dashboard() {
   }, []);
 
   const allStats = [
-    { label: 'Total Count', val: stats.total.toLocaleString(), icon: Users, color: 'text-white', live: true },
-    { label: 'Adults', val: stats.adults.toLocaleString(), icon: UserCheck, color: 'text-zinc-400', live: true },
-    { label: 'Youth/Kids', val: stats.kids.toLocaleString(), icon: Baby, color: 'text-zinc-400', live: true },
+    { label: 'Total Count', val: stats.total, icon: Users, color: 'text-emerald-500', live: true },
+    { label: 'Adults', val: stats.adults, icon: UserCheck, color: 'text-white', live: false },
+    { label: 'Youth/Kids', val: stats.kids, icon: Baby, color: 'text-white', live: false },
     { label: 'Inference Speed', val: stats.inference, icon: Zap, color: 'text-cyan-500', live: false },
   ];
 
@@ -90,13 +84,26 @@ export default function Dashboard() {
       {/* STATS GRID */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {filteredStats.map((stat) => (
-          <div key={stat.label} className="p-6 bg-zinc-900 border border-white/5 rounded-2xl hover:bg-zinc-800/50 transition-all group">
+          <div 
+            key={stat.label} 
+            className={`p-6 bg-zinc-900 border ${stat.live ? 'border-emerald-500/30' : 'border-white/5'} rounded-2xl hover:bg-zinc-800/50 transition-all group relative overflow-hidden`}
+          >
+            {stat.live && (
+              <div className="absolute top-2 right-2">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+              </div>
+            )}
             <div className="flex justify-between items-start mb-4">
-              <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{stat.label}</p>
+              <p className={`text-[10px] font-bold uppercase tracking-widest ${stat.live ? 'text-emerald-500' : 'text-zinc-500'}`}>
+                {stat.label}
+              </p>
               <stat.icon size={16} className={`${stat.color} group-hover:scale-110 transition-transform`} />
             </div>
-            <p className={`text-3xl font-bold tracking-tight ${stat.live ? 'text-white' : ''}`}>
-              {stat.val}
+            <p className="text-3xl font-bold tracking-tight text-white animate-in zoom-in duration-300" key={stat.val}>
+              {stat.val.toLocaleString()}
             </p>
           </div>
         ))}
@@ -109,10 +116,6 @@ export default function Dashboard() {
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-400 flex items-center gap-2">
               Live Spatial Distribution
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-              </span>
             </h3>
             <span className="text-[10px] bg-emerald-500/10 text-emerald-500 px-2 py-1 rounded font-bold uppercase tracking-tighter">
               Active_Feed
@@ -127,7 +130,6 @@ export default function Dashboard() {
         <div className="space-y-6">
           <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-400">System Vitals</h3>
           <div className="space-y-4">
-            {/* UAV Battery Card */}
             <div className="p-4 bg-zinc-900 border border-white/5 rounded-xl">
               <div className="flex justify-between items-center mb-3">
                 <div className="flex items-center gap-2">
@@ -141,7 +143,6 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Signal Strength Card */}
             <div className="p-4 bg-zinc-900 border border-white/5 rounded-xl">
               <div className="flex justify-between items-center mb-3">
                 <div className="flex items-center gap-2">

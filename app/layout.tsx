@@ -5,14 +5,12 @@ import { Header } from "@/components/shared/Header";
 
 const inter = Inter({ subsets: ["latin"] });
 
-
-
+export const metadata = {
+  title: "SkyCount AI",
+  description: "Real-time human movement tracking",
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-
-
-
-
   return (
     <html lang="en" className="dark"> 
       <body className={`${inter.className} bg-zinc-950 text-zinc-100 antialiased overflow-hidden`}>
@@ -28,3 +26,4 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </body>
     </html>
   );
+} // <--- This was the missing bracket that caused the <eof> error!
